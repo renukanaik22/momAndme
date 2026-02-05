@@ -21,6 +21,7 @@ This document defines Java and Spring Boot specific coding standards for the **b
 13. [Logging](#logging)
 14. [Security](#security)
 15. [Performance](#performance)
+16. [Additional DevConnect-Derived Standards](#additional-devconnect-derived-standards)
 
 ---
 
@@ -1576,6 +1577,55 @@ Before submitting Java/Spring Boot code:
 - [ ] **Testing**: Unit tests for services, integration tests for repositories
 - [ ] **MongoDB**: Proper indexing, avoiding N+1 queries
 - [ ] **Documentation**: JavaDoc for public methods, complex logic explained
+
+---
+
+## Additional DevConnect-Derived Standards
+
+These rules come from the DevConnect backend project and are **additive** to the standards above. Apply them when they do not conflict with the MomAndMe stack (Spring Boot + MongoDB).
+
+### Java & Naming Conventions
+- Use meaningful, intention-revealing names (avoid abbreviations).
+- Use `camelCase` for variables and methods; `PascalCase` for classes, records, enums, and interfaces.
+- Constants should be `public static final` and in `UPPER_SNAKE_CASE`.
+- Use `Optional` only for **return types**, never for fields or parameters.
+- Do not use raw types; always use generics.
+
+### Spring Boot & Configuration
+- Use `@Transactional` on **service-layer** methods only, never on controllers.
+- Prefer `@ConfigurationProperties` over hardcoded configuration values.
+- Enable Actuator only for the specific endpoints you actually need.
+
+### API Design
+- Do not return `Object` or `Map` directly from controllers; always expose a **well-defined response DTO**.
+- For list endpoints, prefer pagination parameters such as `page`, `size`, and `sort` rather than returning unbounded lists.
+- Avoid breaking API changes; introduce a new version (for example `/api/v1`) when contracts must change.
+- Avoid magic strings in API contracts and business logic; prefer enums or named constants (for example using `Role.ADMIN.name()` instead of hardcoded "ADMIN").
+
+### DTOs & Mapping
+- Use separate DTO types for **request** and **response** where it improves clarity.
+- Keep DTOs immutable where practical (Java `record` is preferred for simple DTOs).
+- Place Bean Validation annotations on DTOs, not on persistence entities.
+- Keep mapping logic out of controllers; use dedicated mapper classes or a mapping library such as MapStruct.
+
+### Error Handling
+- Never expose stack traces or internal exception details to clients.
+- Standardize error responses to include at least: `timestamp`, `status`, `errorCode`, `message`, and `path`.
+- Continue to use custom exceptions for business errors and avoid using exceptions for normal control flow.
+
+### Security
+- Never rely on the frontend for authorization decisions.
+- Perform ownership and access checks in the **service layer**, using the Spring Security context to identify the current user.
+- Apply least-privilege principles when designing roles and permissions, and avoid hardcoded secrets or credentials.
+
+### Persistence & Database Usage
+- Avoid `findAll()` on large collections in production APIs; prefer paginated access patterns.
+- Prefer `existsBy…` checks when you only need to know if data is present instead of loading full entities or documents.
+- In addition to application-level validation, use appropriate database constraints or indexes for frequently queried fields.
+
+### Testing
+- Use a **separate test database** configuration and never run automated tests against development or production databases.
+- Keep tests deterministic, independent, and focused on service, repository, and controller behavior as described in the Testing section above.
 
 ---
 
